@@ -1,3 +1,6 @@
+![Basic branching](../project_images/Screen Shot 2014-03-23 at 5.48.49 PM.png?raw=true "Basic branching")
+
+
 First post, and starting with 1 week left! I'm doing this to push myself to create an idea I've had for a while -- a dynamic landscape of nature-inspired objects that interact with music. I'm going for a field of Dr. Seussian plants/trees that bounce & sway in response to microphone or mp3 input, and may explore other audio API's later on. Going to take a very iterative approach. My plan is to break things down into the following steps:
 
 - Draw SVG lines within a defined area on the page.

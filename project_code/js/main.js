@@ -19,16 +19,21 @@ LP.getUniqueId = (function(){
 	}
 })();
 
+
 LP.Plant = function(settings){
 	this.id = settings.id || LP.getUniqueId();
 	
-	this.$svg = settings.$svg;
+	this.svg = settings.svg;
 
 	// How many levels of branches
 	this.branchLevelCount = settings.branchLevelCount || 1;
 
 	// How many branches split off at each branching point
 	this.branchMultiple = settings.branchLevels || 2;
+
+	this.branchAngleVariability = settings.branchAngleVariability || .4;
+
+	this.childLengthRatio = settings.childLengthRatio || .5;
 	
 	// Collection of LP.Branch
 	this.branches = [];
@@ -44,80 +49,101 @@ LP.Plant.prototype = {
 
 	init : function(){
 		var self = this,
-			i;
-		
-		for (i = 0; i < self.branchLevelCount; i++){
-			self.branches.push(new LP.Branch({
+			trunk = new LP.Branch({
+				svg : self.svg,
 				plant : self,
 				level : 0,
-				$svg : self.$svg,
+				
+				branchMultiple : self.branchMultiple,
+				branchAngleVariability : self.branchAngleVariability,
+				childLengthRatio : self.childLengthRatio,
+
 				x1 : self.x1,
 				y1 : self.y1
-			}));
-		}
+			});
 	}
-	// ,
-
-	// draw : function(){
-	// 	this.branches.forEach(function(branch, index){
-	// 		branch.draw();
-	// 	});
-	// }
 };
 
 
 LP.Branch = function(settings){
-	this.id = settings.id || LP.getUniqueId();
-	
-	this.plant = settings.plant;
-	this.parent = settings.parent || undefined;
-	this.children = [];
-	this.level = settings.level || 0;
-	this.$svg = settings.$svg;
-	
-	this.length = settings.length || 100;
-	this.x1 = settings.x1 || 0;
-	this.y1 = settings.y1 || 0;
-	
-	this.strokeWidth = settings.strokeWidth || 1;
-	this.stroke = settings.stroke || 'white';
-	this.tauRadians = settings.tauRadians || .25;
+	var self = this;
 
-	// Endpoint is defined in init()
-	this.x2 = undefined;
-	this.y2 = undefined;
+	self.id = settings.id || LP.getUniqueId();
+	
+	// Settings from parent
+	self.svg = settings.svg;
+	self.plant = settings.plant;
+	self.parent = settings.parent || undefined;
+	self.level = settings.level || 0;
+	
+	self.branchMultiple = settings.branchLevels || 2;
+	self.branchAngleVariability = settings.branchAngleVariability;
+	self.childLengthRatio = settings.childLengthRatio;
+	
+	
+	self.length = settings.length || 100;
+	self.x1 = settings.x1 || 0;
+	self.y1 = settings.y1 || 0;
+	self.tauRadians = settings.tauRadians || .25;
 
-	this.init();
+	self.children = [];
+	self.strokeWidth = settings.strokeWidth || 1;
+	self.stroke = settings.stroke || 'white';
+	
+
+	var endPoint = self.getEndPoint();
+
+	self.x2 = endPoint.x;
+	self.y2 = endPoint.y;
+
+	self.plant.branches.push(self);
+
+	self.init();
 };
 
 LP.Branch.prototype = {
+	
 	init : function(){
-		var endPoint = this.getEndPoint();
-		this.x2 = endPoint.x;
-		this.y2 = endPoint.y;
+		var self = this,
+			i = 0;
+
+		if (self.level < (self.plant.branchLevelCount - 1)){
+			// how many branches
+			for (i = 0; i < self.branchMultiple; i++){
+				var angleDelta = (self.branchAngleVariability * Math.random()) - (self.branchAngleVariability / 2),
+					newAngle = self.tauRadians + angleDelta,
+					newLength = self.length * self.childLengthRatio;
+
+				self.children.push(new LP.Branch({
+					svg : self.svg,
+					plant : self.plant,
+					parent : self,
+					level : self.level + 1,
+					
+					branchMultiple : self.branchMultiple,
+					branchAngleVariability : self.branchAngleVariability,
+					childLengthRatio : self.childLengthRatio,			
+
+					// start it at this branch's endpoint
+					x1 : self.x2,
+					y1 : self.y2,
+
+					length : newLength,
+					tauRadians : newAngle
+					
+				}));
+			}
+		}
 	},
 
 	getEndPoint : function(){
 		var self = this,
-			x2 = self.x1 + self.length * Math.cos(self.tauRadians * LP.TAU);
+			x2 = self.x1 + ( self.length * Math.cos(self.tauRadians * LP.TAU) );
 			// Subtract because the graph's 0,0 is in upper left
-			y2 = self.y1 - self.length * Math.sin(self.tauRadians * LP.TAU);
+			y2 = self.y1 - ( self.length * Math.sin(self.tauRadians * LP.TAU) );
 		return { x: x2, y: y2 };
 	}
-	// ,
 
-	// draw : function(){
-	// 	var line = [
-	// 		'<line',
-	// 		' x1="' + this.x1 + '" ',
-	// 		' y1="' + this.y1 + '" ',
-	// 		' stroke-width="' + this.strokeWidth + '" ',
-	// 		' stroke="' + this.stroke + '" ',
-	// 		' />'
-	// 	].join('');
-
-	// 	this.$svg.append($('<line x1='))
-	// }
 };
 
 
@@ -132,16 +158,12 @@ $(function(){
 	for (var i = 0; i < numberOfPlants; i++){
 		plants.push(new LP.Plant({
 			svg : svg,
-			branchLevelCount : 1,
+			branchLevelCount : 8,
 			branchMultiple : 2,
 			x1 : 500,
 			y1 : 500
 		}));
 	}
-
-	// plants.forEach(function(plant){
-	// 	plant.draw();
-	// });
 
 	console.log('plants[0]', plants[0])
 
