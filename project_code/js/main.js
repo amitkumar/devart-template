@@ -8,8 +8,10 @@
 // Namespace will be "Live Plants"
 var LP = {};
 
+
 // http://tauday.com/tau-manifesto
 LP.TAU = Math.PI * 2;
+
 
 LP.getUniqueId = (function(){
 	var id = 0;
@@ -56,8 +58,6 @@ LP.Plant = function(settings){
 LP.Plant.prototype = {
 
 	init : function(){
-
-
 		var self = this,
 			trunk = new LP.Branch({
 				svg : self.svg,
@@ -78,9 +78,15 @@ LP.Plant.prototype = {
 				y1 : self.y1
 				
 			});
-			console.log("length : self.maxHeight * self.childLengthRatio * .9,", self.maxHeight, self.childLengthRatio)
+	},
+
+	
+	move : function(tauRadiansDelta){
+		var trunk = this.branches[0];
+		trunk.move(trunk.x1, trunk.y1, tauRadiansDelta);
 	}
 };
+
 
 
 LP.Branch = function(settings){
@@ -110,10 +116,7 @@ LP.Branch = function(settings){
 	self.stroke = settings.stroke || 'white';
 	self.opacity = settings.opacity;
 
-	var endPoint = self.getEndPoint();
-
-	self.x2 = endPoint.x;
-	self.y2 = endPoint.y;
+	self.updateEndPoint();
 
 	self.plant.branches.push(self);
 
@@ -161,12 +164,30 @@ LP.Branch.prototype = {
 		}
 	},
 
-	getEndPoint : function(){
-		var self = this,
-			x2 = self.x1 + ( self.length * Math.cos(self.tauRadians * LP.TAU) );
-			// Subtract because the graph's 0,0 is in upper left
-			y2 = self.y1 - ( self.length * Math.sin(self.tauRadians * LP.TAU) );
-		return { x: x2, y: y2 };
+	move : function(x1, y1, tauRadiansDelta){
+		// Update start & end points and cascade the changes down to the children
+		var self = this;
+		self.x1 = x1;
+		self.y1 = y1;
+		self.tauRadians += tauRadiansDelta;
+
+		self.updateEndPoint();
+
+		if (self.children){
+			self.children.forEach(function(child){
+				child.move(self.x2, self.y2, tauRadiansDelta);
+			});
+		}
+	},
+
+	updateEndPoint : function(){
+		var self = this;
+		
+		self.x2 = self.x1 + ( self.length * Math.cos(self.tauRadians * LP.TAU) );
+		
+		// Subtract because the graph's 0,0 is in upper left
+		self.y2 = self.y1 - ( self.length * Math.sin(self.tauRadians * LP.TAU) );
+		
 	}
 
 };
@@ -199,7 +220,7 @@ LP.generatePlants = function(){
 			maxHeight : windowHeight/2,
 
 			branchLevelCount : 4,
-			branchMultiple : 2,
+			branchMultiple : 3,
 			branchAngleVariability : .2,
 
 			childLengthRatio : .7,
@@ -246,11 +267,12 @@ $(function(){
 
 	var animationFrameLastRun = undefined;
 	var animationFrame = function(timestamp){
-		if (!animationFrameLastRun || (timestamp - animationFrameLastRun > 2000) ) {
+		if (!animationFrameLastRun || (timestamp - animationFrameLastRun > 500) ) {
 			animationFrameLastRun = timestamp;
-			console.log('timestamp', timestamp);
 
 			LP.plants.forEach(function(plant){
+				plant.move( (Math.random() * 1) - 1);
+
 				d3.select('#' + plant.id)
 					.selectAll('line')
 					.data(plant.branches)
