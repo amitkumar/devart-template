@@ -42,7 +42,7 @@
 			if (self.level < (self.plant.branchLevelCount - 1)){
 				// how many branches
 				for (i = 0; i < self.branchMultiple; i++){
-					var angleDelta = (self.branchAngleVariability * Math.random()) - (self.branchAngleVariability / 2),
+					var angleDelta = LP.getPlusMinusRandom(self.branchAngleVariability),
 						childAngle = self.tauRadians + angleDelta,
 						childLength = self.length * self.childLengthRatio,
 						childStrokeWidth = self.strokeWidth * self.childStrokeWidthRatio,
@@ -74,18 +74,26 @@
 			}
 		},
 
-		move : function(x1, y1, tauRadiansDelta){
+		/**
+		 * @param {Number} tauRadiansDelta - 0-1
+		 * @param {Number} variance - 0-1
+		 */
+		move : function(x1, y1, tauRadiansDelta, variance){
 			// Update start & end points and cascade the changes down to the children
 			var self = this;
 			self.x1 = x1;
 			self.y1 = y1;
 			self.tauRadians += tauRadiansDelta;
 
+			variance = variance || 0;
+			self.tauRadians += Math.random() * variance;
+			// console.log('variance', variance || 0, LP.getPlusMinusRandom(variance || 0))
+
 			self.updateEndPoint();
 
 			if (self.children){
 				self.children.forEach(function(child){
-					child.move(self.x2, self.y2, tauRadiansDelta);
+					child.move(self.x2, self.y2, tauRadiansDelta, variance);
 				});
 			}
 		},

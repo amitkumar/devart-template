@@ -14,7 +14,9 @@ LP.getUniqueId = (function(){
 	}
 })();
 
-
+LP.getPlusMinusRandom = function(max){
+	return (max * Math.random()) - (max / 2);
+}
 
 LP.generatePlants = function(){
 	var numberOfPlants = 4,
@@ -32,16 +34,16 @@ LP.generatePlants = function(){
 			svg : svg,
 			maxHeight : windowHeight/2,
 
-			branchLevelCount : 4,
-			branchMultiple : 3,
-			branchAngleVariability : .2,
+			branchLevelCount : 15,
+			branchMultiple : 1,
+			branchAngleVariability : .3,
 
-			childLengthRatio : .7,
-			childStrokeWidthRatio : .6,
-			childOpacityRatio : .9,
+			childLengthRatio : .8,
+			childStrokeWidthRatio : .7,
+			childOpacityRatio : .95,
 			
 			x1 : xSpacing * (i + 1),
-			y1 : windowHeight
+			y1 : windowHeight/1.25
 		}));
 	}
 
@@ -73,7 +75,7 @@ LP.drawToSvg = function(firstTimeDraw){
 				.style('opacity', LP.Branch.getters['opacity']);
 				
 		});	
-		
+
 	} else {
 
 		LP.plants.forEach(function(plant){
@@ -82,6 +84,8 @@ LP.drawToSvg = function(firstTimeDraw){
 				.selectAll('line')
 				.data(plant.branches)
 				.transition()
+				// .duration(750)
+				.ease('elastic')
 				.attr('id', LP.Branch.getters['id'])
 				.attr('x1', LP.Branch.getters['x1'])
 				.attr('y1', LP.Branch.getters['y1'])

@@ -15,13 +15,13 @@ $(function(){
 
 	var animationFrameLastRun = undefined;
 	var animationFrame = function(timestamp){
-		if (!animationFrameLastRun || (timestamp - animationFrameLastRun > 500) ) {
+		if (!animationFrameLastRun || (timestamp - animationFrameLastRun > (Math.random() * 10000)) ) {
 			animationFrameLastRun = timestamp;
 
 			LP.plants.forEach(function(plant){
-				plant.move( (Math.random() * 1) - 1);
+				plant.move( (Math.random() * 1) - 1, .1);
 			});
-			
+
 			LP.drawToSvg();
 			
 		}

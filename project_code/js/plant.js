@@ -58,9 +58,14 @@
 		},
 
 		
-		move : function(tauRadiansDelta){
+		/**
+		 * @param {Number} tauRadiansDelta - 0-1
+		 * @param {Number} variance - 0-1
+		 */
+		move : function(tauRadiansDelta, variance){
 			var trunk = this.branches[0];
-			trunk.move(trunk.x1, trunk.y1, tauRadiansDelta);
+			console.log('plant variance', variance)
+			trunk.move(trunk.x1, trunk.y1, tauRadiansDelta, variance);
 		}
 	};
 
